@@ -4,13 +4,16 @@ import { Key, ShieldCheck, Cpu, Check, X, Sparkles, ExternalLink } from 'lucide-
 export default function ApiKeyModal({ isOpen, onClose, apiKeyConfig, onSaveApiKeyConfig }) {
   const [provider, setProvider] = useState(apiKeyConfig?.provider || 'mock');
   const [key, setKey] = useState(apiKeyConfig?.key || '');
-  const [model, setModel] = useState(apiKeyConfig?.model || 'gemini-1.5-flash');
+  const [model, setModel] = useState(apiKeyConfig?.model || 'gemini-3.6-flash');
+  const [isCustomModel, setIsCustomModel] = useState(false);
+  const [customModelName, setCustomModelName] = useState('');
 
   if (!isOpen) return null;
 
   const handleSave = (e) => {
     e.preventDefault();
-    onSaveApiKeyConfig({ provider, key, model });
+    const finalModel = isCustomModel && customModelName.trim() ? customModelName.trim() : model;
+    onSaveApiKeyConfig({ provider, key, model: finalModel });
     onClose();
   };
 
@@ -53,7 +56,7 @@ export default function ApiKeyModal({ isOpen, onClose, apiKeyConfig, onSaveApiKe
                   checked={provider === 'gemini'}
                   onChange={() => {
                     setProvider('gemini');
-                    setModel('gemini-1.5-flash');
+                    setModel('gemini-3.6-flash');
                   }}
                 />
                 <div className="provider-info">
@@ -107,24 +110,53 @@ export default function ApiKeyModal({ isOpen, onClose, apiKeyConfig, onSaveApiKe
 
               <div className="form-group">
                 <label>Model Version:</label>
-                <select 
-                  className="form-select"
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                >
-                  {provider === 'gemini' ? (
-                    <>
-                      <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast)</option>
-                      <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Reasoning)</option>
-                      <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
-                      <option value="gpt-4o">GPT-4o (Standard)</option>
-                    </>
-                  )}
-                </select>
+                {!isCustomModel ? (
+                  <select 
+                    className="form-select"
+                    value={model}
+                    onChange={(e) => {
+                      if (e.target.value === 'custom') {
+                        setIsCustomModel(true);
+                      } else {
+                        setModel(e.target.value);
+                      }
+                    }}
+                  >
+                    {provider === 'gemini' ? (
+                      <>
+                        <option value="gemini-3.6-flash">Gemini 3.6 Flash (Recommended)</option>
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                        <option value="custom">✏️ Enter Custom Model Identifier...</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="gpt-4o-mini">GPT-4o Mini (Fast)</option>
+                        <option value="gpt-4o">GPT-4o (Standard)</option>
+                        <option value="custom">✏️ Enter Custom Model Identifier...</option>
+                      </>
+                    )}
+                  </select>
+                ) : (
+                  <div className="flex gap-2">
+                    <input 
+                      type="text"
+                      className="form-input font-mono flex-1"
+                      placeholder="e.g. gemini-3.6-flash or gemini-2.0-flash-thinking"
+                      value={customModelName}
+                      onChange={(e) => setCustomModelName(e.target.value)}
+                      required
+                    />
+                    <button 
+                      type="button" 
+                      className="btn-secondary text-xs"
+                      onClick={() => setIsCustomModel(false)}
+                    >
+                      Presets
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           )}

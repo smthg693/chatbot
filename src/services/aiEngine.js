@@ -9,7 +9,6 @@ export async function generateAIResponse({
   const activeSession = activeMemories.filter(m => m.scope === 'session' && m.status === 'active');
   const pendingNegotiation = activeMemories.filter(m => m.status === 'pending');
 
-  // Construct system prompt with memory context
   const memorySystemPrompt = buildMemorySystemPrompt(activeLongTerm, activeSession, pendingNegotiation);
 
   if (apiKeyConfig.provider === 'gemini' && apiKeyConfig.key) {
@@ -18,7 +17,6 @@ export async function generateAIResponse({
     return await callOpenAIAPI(messages, memorySystemPrompt, apiKeyConfig);
   }
 
-  // Fallback to Smart Offline Simulator
   return await simulateAIResponse(messages, activeLongTerm, activeSession, pendingNegotiation);
 }
 
@@ -38,9 +36,9 @@ function buildMemorySystemPrompt(longTerm, session, pending) {
   }
 
   prompt += `INSTRUCTIONS:\n`;
-  prompt += `1. Speak directly, naturally, and warmly. Do NOT prefix or wrap your messages with verbose meta-parentheses like "*(Shaped by confirmed long-term memory:...)*".\n`;
-  prompt += `2. Integrate relevant context seamlessly into your answer.\n`;
-  prompt += `3. Keep responses clean, well-formatted, and concise without unnecessary fluff.`;
+  prompt += `1. Speak directly, naturally, and warmly in clear, clean English paragraphs.\n`;
+  prompt += `2. Do NOT output raw metadata tags or verbose parenthetical headers like "*(Shaped by confirmed long-term memory...)*".\n`;
+  prompt += `3. Format your answers neatly using Markdown with proper spacing and code blocks where applicable.`;
 
   return prompt;
 }
@@ -73,7 +71,7 @@ async function callGeminiAPI(messages, memorySystemPrompt, apiKeyConfig) {
     }
 
     const data = await res.json();
-    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I processed your request using active memory context.";
+    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I have processed your request using your active memory context.";
     return {
       text: replyText,
       provider: 'Google Gemini',
@@ -83,7 +81,7 @@ async function callGeminiAPI(messages, memorySystemPrompt, apiKeyConfig) {
     console.error("Gemini API call failed, falling back to simulator:", err);
     const sim = await simulateAIResponse(messages, [], [], []);
     return {
-      text: `⚠️ **API Error (${err.message})**. Falling back to local smart engine:\n\n` + sim.text,
+      text: `⚠️ **API Notice (${err.message})**. Falling back to local smart engine:\n\n` + sim.text,
       provider: 'Local Engine (Fallback)',
       modelUsed: 'Simulator'
     };
@@ -121,7 +119,7 @@ async function callOpenAIAPI(messages, memorySystemPrompt, apiKeyConfig) {
     }
 
     const data = await res.json();
-    const replyText = data.choices?.[0]?.message?.content || "I processed your request using active memory context.";
+    const replyText = data.choices?.[0]?.message?.content || "I have processed your request using your active memory context.";
     return {
       text: replyText,
       provider: 'OpenAI',
@@ -131,14 +129,13 @@ async function callOpenAIAPI(messages, memorySystemPrompt, apiKeyConfig) {
     console.error("OpenAI API call failed, falling back to simulator:", err);
     const sim = await simulateAIResponse(messages, [], [], []);
     return {
-      text: `⚠️ **API Error (${err.message})**. Falling back to local smart engine:\n\n` + sim.text,
+      text: `⚠️ **API Notice (${err.message})**. Falling back to local smart engine:\n\n` + sim.text,
       provider: 'Local Engine (Fallback)',
       modelUsed: 'Simulator'
     };
   }
 }
 
-// Smart local simulator with memory citation and contextual responses
 async function simulateAIResponse(messages, longTerm, session, pending) {
   await new Promise(r => setTimeout(r, 400));
 
@@ -154,38 +151,42 @@ async function simulateAIResponse(messages, longTerm, session, pending) {
   if (/hello|hi|hey|soham/i.test(lowerMsg)) {
     responseParts.push(`Hi Soham! How can I help you today? Whether we're diving into your current session's Python project, working with your primary stack of TypeScript & React, or discussing UI design, I'm ready to assist!`);
   } else if (/cors|proxy|express|react|node|tailwind|code|python|bug/i.test(lowerMsg)) {
-    responseParts.push(`I understand your technical context.`);
-    
+    responseParts.push(`I've reviewed your request in the context of your current tech stack.`);
+
     const hasTailwind = longTerm.some(m => m.text.toLowerCase().includes('tailwind'));
     if (hasTailwind) {
-      responseParts.push(`Applying your preference for Tailwind CSS in code examples.`);
+      responseParts.push(`I will apply your confirmed preference for **Tailwind CSS** in all UI code snippets.`);
     }
 
     if (/cors/i.test(lowerMsg)) {
-      responseParts.push(`To resolve the Express proxy CORS issue, configure origin headers or use the \`cors\` middleware package:
+      responseParts.push(`To resolve your Express proxy CORS issue, configure the backend origin headers or apply the official \`cors\` middleware package:
+
 \`\`\`javascript
 const cors = require('cors');
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
 \`\`\``);
     } else {
-      responseParts.push(`Here is how we can structure this component cleanly following your active technical constraints.`);
+      responseParts.push(`Here is how we can structure this component cleanly following your active technical preferences and guidelines.`);
     }
   } else if (/doctor|blood pressure|prescription|health|diet|vegetarian|allergy/i.test(lowerMsg)) {
-    responseParts.push(`I've received your health and lifestyle information.`);
+    responseParts.push(`I have updated your health and lifestyle context.`);
+
     const privacyConstraint = longTerm.find(m => m.category === 'Constraint/Privacy');
     if (privacyConstraint) {
-      responseParts.push(`🛡️ Privacy constraint active: ${privacyConstraint.text}. Details will not persist beyond this conversation.`);
+      responseParts.push(`🛡️ **Privacy Guardrail Active**: Complying with your privacy constraint (${privacyConstraint.text}). Sensitive details will not persist beyond this conversation.`);
     }
-    responseParts.push(`Here is a structured log template:
-- **Date & Time**
-- **Systolic / Diastolic Reading**
-- **Pulse**
-- **Notes**`);
+
+    responseParts.push(`Here is a clean daily tracking template you can use:
+
+• **Date & Time**
+• **Systolic / Diastolic Reading**
+• **Pulse Rate**
+• **Notes & Observations**`);
   } else if (/trip|tokyo|travel|budget|flight|hotel/i.test(lowerMsg)) {
-    responseParts.push(`Sounds like an exciting trip!`);
-    responseParts.push(`For a 5-day itinerary under $2,500, allocating ~$150/night for accommodations, ~$40/day for dining, and local transit passes will keep you well within budget.`);
+    responseParts.push(`That sounds like an exciting trip!`);
+    responseParts.push(`For a 5-day itinerary under $2,500, allocating ~$150 per night for accommodations and ~$40 per day for dining will keep you comfortably within your budget while leaving room for local transportation passes.`);
   } else {
-    responseParts.push(`Understood. I've updated your active memory context accordingly.`);
+    responseParts.push(`Understood. I have logged your message and updated your active memory context accordingly.`);
   }
 
   return {

@@ -11,7 +11,8 @@ import {
   PlayCircle, 
   RefreshCw, 
   Info,
-  ChevronRight
+  CheckCircle2,
+  SlidersHorizontal
 } from 'lucide-react';
 import MemoryNegotiationBar from './MemoryNegotiationBar';
 import { PRESET_SCENARIOS } from '../../data/mockScenarios';
@@ -26,7 +27,10 @@ export default function ChatWindow({
   onRejectMemory, 
   onUpdateMemoryText,
   onLoadScenario,
-  apiKeyConfig
+  apiKeyConfig,
+  consentSettings,
+  onUpdateConsentSettings,
+  autoStoreNotification
 }) {
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
@@ -37,7 +41,7 @@ export default function ChatWindow({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isThinking, pendingMemories]);
+  }, [messages, isThinking, pendingMemories, autoStoreNotification]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -49,6 +53,13 @@ export default function ChatWindow({
 
   const handleQuickInsert = (snippet) => {
     setInputText(snippet);
+  };
+
+  const toggleAutoStore = () => {
+    onUpdateConsentSettings({
+      ...consentSettings,
+      strictConsent: !consentSettings.strictConsent
+    });
   };
 
   const activeLongTermCount = activeMemories.filter(m => m.scope === 'long-term' && m.status === 'active').length;
@@ -73,11 +84,31 @@ export default function ChatWindow({
           ))}
         </div>
 
-        <div className="active-scope-badge" title="Active memory items currently shaping AI responses">
-          <BrainCircuit size={14} className="text-cyan-400" />
-          <span>Active Context:</span>
-          <span className="scope-pill-lt"><Lock size={10} /> {activeLongTermCount} Long-Term</span>
-          <span className="scope-pill-se"><Zap size={10} /> {activeSessionCount} Session</span>
+        <div className="flex items-center gap-3">
+          {/* Auto-Judge & Store Mode Pill */}
+          <button 
+            className={`auto-store-toggle-btn ${!consentSettings.strictConsent ? 'auto-on' : 'auto-off'}`}
+            onClick={toggleAutoStore}
+            title={!consentSettings.strictConsent ? "Auto-Judge Mode ON: AI automatically classifies & stores memories" : "Manual Mode: Require manual click for every memory proposal"}
+          >
+            {!consentSettings.strictConsent ? (
+              <>
+                <Zap size={13} className="text-emerald-400 animate-pulse" />
+                <span>Auto-Store: ON</span>
+              </>
+            ) : (
+              <>
+                <SlidersHorizontal size={13} className="text-amber-400" />
+                <span>Manual Review</span>
+              </>
+            )}
+          </button>
+
+          <div className="active-scope-badge" title="Active memory items currently shaping AI responses">
+            <BrainCircuit size={14} className="text-cyan-400" />
+            <span className="scope-pill-lt"><Lock size={10} /> {activeLongTermCount} Long-Term</span>
+            <span className="scope-pill-se"><Zap size={10} /> {activeSessionCount} Session</span>
+          </div>
         </div>
       </div>
 
@@ -88,10 +119,9 @@ export default function ChatWindow({
             <div className="hero-icon-container">
               <BrainCircuit className="hero-brain-icon animate-pulse-glow" />
             </div>
-            <h2>Negotiable AI Memory System</h2>
+            <h2>Autonomous & Negotiable AI Memory</h2>
             <p className="hero-description">
-              Type anything to start chatting. Every preference, fact, or constraint you mention will be extracted in real-time for you to 
-              <strong> negotiate: Store Long-Term, Keep Session-Only, or Discard</strong>.
+              Type anything to start chatting. Memories are <strong>automatically evaluated, judged, and stored into active context</strong>, or you can switch to Manual Review mode anytime.
             </p>
 
             <div className="quick-prompt-chips">
@@ -174,7 +204,7 @@ export default function ChatWindow({
             <div className="message-content-wrapper">
               <div className="thinking-bubble glass-card">
                 <RefreshCw size={14} className="animate-spin text-cyan-400" />
-                <span>Evaluating context & formulating response...</span>
+                <span>Evaluating task context & formulating response...</span>
               </div>
             </div>
           </div>
@@ -183,7 +213,15 @@ export default function ChatWindow({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Floating In-Stream Negotiation Bar */}
+      {/* Auto-Store Toast Notification */}
+      {autoStoreNotification && (
+        <div className="auto-store-banner glass-card animate-slide-down">
+          <CheckCircle2 size={16} className="text-emerald-400 flex-shrink-0" />
+          <span>{autoStoreNotification}</span>
+        </div>
+      )}
+
+      {/* Floating In-Stream Negotiation Bar (Used in Manual Review Mode) */}
       <MemoryNegotiationBar 
         pendingMemories={pendingMemories}
         onConfirmMemory={onConfirmMemory}
@@ -220,7 +258,11 @@ export default function ChatWindow({
         <div className="input-footer-hint">
           <div className="hint-item">
             <Sparkles size={11} className="text-amber-400 inline" />
-            <span>Memories are extracted live and queued for your explicit negotiation above.</span>
+            <span>
+              {!consentSettings.strictConsent ? 
+                'Auto-Store Mode ON: Memories are automatically judged & stored. You can manage them in Memory Vault anytime.' : 
+                'Manual Review Mode: Extracted candidates are queued above for your explicit confirmation.'}
+            </span>
           </div>
           <div className="hint-item">
             <kbd>Shift + Enter</kbd> for new line

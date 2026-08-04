@@ -54,7 +54,7 @@ export default function App() {
     return saved ? JSON.parse(saved) : [
       {
         id: 'log_init_1',
-        action: 'SAVED_LONG_TERM',
+        action: 'AUTO_SAVED_LONG_TERM',
         memoryText: 'User prefers Dark Mode and high-contrast glassmorphic design interfaces.',
         category: 'Preference',
         timestamp: new Date().toLocaleTimeString()
@@ -68,8 +68,9 @@ export default function App() {
     return saved ? JSON.parse(saved) : { provider: 'mock', key: '', model: '' };
   });
 
+  // Default strictConsent to FALSE so memories are auto-judged and stored automatically!
   const [consentSettings, setConsentSettings] = useState({
-    strictConsent: true,
+    strictConsent: false, // Auto-Approve & Auto-Scope Mode is ON by default!
     autoFlagPii: true,
     showCitations: true,
     autoClearSession: true
@@ -78,6 +79,9 @@ export default function App() {
   // Modal States
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
   const [isConsentModalOpen, setIsConsentModalOpen] = useState(false);
+
+  // Toast notification state for auto-stored memories
+  const [autoStoreNotification, setAutoStoreNotification] = useState(null);
 
   // Sync to LocalStorage
   useEffect(() => {
@@ -128,19 +132,55 @@ export default function App() {
 
     setMessages(prev => [...prev, userMsg]);
     setIsThinking(true);
+    setAutoStoreNotification(null);
 
     // 1. Extract memory candidates live from text
     const extractedCandidates = extractMemoriesFromText(text, memories);
 
+    let updatedMemories = [...memories];
+
     if (extractedCandidates.length > 0) {
-      setMemories(prev => [...prev, ...extractedCandidates]);
+      if (!consentSettings.strictConsent) {
+        // AUTO-JUDGE MODE: Automatically classify scope and store as active immediately!
+        let autoLtCount = 0;
+        let autoSeCount = 0;
+
+        const autoProcessed = extractedCandidates.map(cand => {
+          const autoScope = cand.suggestedScope || 'long-term';
+          if (autoScope === 'long-term') autoLtCount++;
+          else autoSeCount++;
+
+          logAuditEvent(
+            autoScope === 'long-term' ? 'AUTO_SAVED_LONG_TERM' : 'AUTO_SAVED_SESSION',
+            cand.text,
+            cand.category
+          );
+
+          return {
+            ...cand,
+            status: 'active',
+            scope: autoScope,
+            reason: `Auto-judged & classified as ${autoScope === 'long-term' ? 'Long-Term' : 'Session-Scoped'}`
+          };
+        });
+
+        updatedMemories = [...memories, ...autoProcessed];
+        setMemories(updatedMemories);
+        triggerConfetti();
+
+        setAutoStoreNotification(`✨ Auto-Judged & Stored: ${autoLtCount} Long-Term, ${autoSeCount} Session Memory item(s)`);
+      } else {
+        // STRICT MANUAL NEGOTIATION MODE: Queue as pending for user clicks
+        updatedMemories = [...memories, ...extractedCandidates];
+        setMemories(updatedMemories);
+      }
     }
 
-    // 2. Query AI Engine with active memories
+    // 2. Query AI Engine with updated active memories
     try {
       const aiResult = await generateAIResponse({
         messages: [...messages, userMsg],
-        activeMemories: memories,
+        activeMemories: updatedMemories,
         apiKeyConfig: apiKeyConfig
       });
 
@@ -273,6 +313,9 @@ export default function App() {
             onUpdateMemoryText={handleUpdateMemoryText}
             onLoadScenario={handleLoadScenario}
             apiKeyConfig={apiKeyConfig}
+            consentSettings={consentSettings}
+            onUpdateConsentSettings={setConsentSettings}
+            autoStoreNotification={autoStoreNotification}
           />
         )}
 

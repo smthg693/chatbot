@@ -10,8 +10,8 @@ import {
   ShieldAlert, 
   HelpCircle,
   Clock,
-  CheckCircle2,
-  AlertTriangle
+  Ban,
+  Calendar
 } from 'lucide-react';
 import { CATEGORY_COLORS } from '../../data/mockScenarios';
 
@@ -42,14 +42,12 @@ export default function MemoryNegotiationBar({
     <div className="negotiation-banner animate-slide-down">
       <div className="negotiation-header">
         <div className="flex items-center gap-2">
-          <div className="sparkle-pulse">
-            <Sparkles size={18} className="text-amber-400" />
-          </div>
-          <span className="negotiation-title">AI Memory Negotiation Proposed</span>
-          <span className="count-badge">{pendingMemories.length} item(s) to negotiate</span>
+          <Sparkles size={18} className="text-amber-400 animate-pulse" />
+          <span className="negotiation-title">Negotiate AI Memory Retention</span>
+          <span className="count-badge">{pendingMemories.length} item(s)</span>
         </div>
         <span className="negotiation-hint">
-          Decide how the AI should retain these extracted insights
+          Choose how long the AI should remember this insight
         </span>
       </div>
 
@@ -73,33 +71,26 @@ export default function MemoryNegotiationBar({
                   </span>
 
                   {mem.sensitivity === 'high' && (
-                    <span className="badge-sensitivity-high" title="Contains potential PII or confidential information">
-                      <ShieldAlert size={12} /> High Privacy Risk
-                    </span>
-                  )}
-                  {mem.sensitivity === 'medium' && (
-                    <span className="badge-sensitivity-med">
-                      <AlertTriangle size={12} /> Sensitive
+                    <span className="badge-sensitivity-high">
+                      <ShieldAlert size={12} /> Privacy Sensitive
                     </span>
                   )}
 
-                  <span className="confidence-pill" title="AI Extraction Confidence Score">
+                  <span className="confidence-pill">
                     {(mem.confidence * 100).toFixed(0)}% Confidence
                   </span>
                 </div>
 
-                <div className="card-actions-quick">
-                  <button 
-                    className="icon-action-btn hover:text-amber-300"
-                    onClick={() => handleStartEdit(mem)}
-                    title="Edit extracted memory before saving"
-                  >
-                    <Edit3 size={14} />
-                  </button>
-                </div>
+                <button 
+                  className="icon-action-btn hover:text-amber-300"
+                  onClick={() => handleStartEdit(mem)}
+                  title="Edit text before saving"
+                >
+                  <Edit3 size={14} />
+                </button>
               </div>
 
-              {/* Memory Content Text */}
+              {/* WHAT: Memory Content Text */}
               <div className="card-body">
                 {editingId === mem.id ? (
                   <div className="edit-memory-box">
@@ -111,16 +102,10 @@ export default function MemoryNegotiationBar({
                       autoFocus
                       onKeyDown={(e) => e.key === 'Enter' && handleSaveEdit(mem.id)}
                     />
-                    <button 
-                      className="btn-mini btn-save"
-                      onClick={() => handleSaveEdit(mem.id)}
-                    >
+                    <button className="btn-mini btn-save" onClick={() => handleSaveEdit(mem.id)}>
                       <Check size={12} /> Save
                     </button>
-                    <button 
-                      className="btn-mini btn-cancel"
-                      onClick={() => setEditingId(null)}
-                    >
+                    <button className="btn-mini btn-cancel" onClick={() => setEditingId(null)}>
                       <X size={12} />
                     </button>
                   </div>
@@ -128,39 +113,49 @@ export default function MemoryNegotiationBar({
                   <p className="memory-text">"{mem.text}"</p>
                 )}
 
+                {/* WHY: Extraction Reason */}
                 <div className="extraction-reason">
                   <HelpCircle size={12} className="text-slate-400 inline mr-1" />
-                  <span>Reason: {mem.reason}</span>
+                  <span><strong>Why extracted:</strong> {mem.reason}</span>
                 </div>
               </div>
 
-              {/* Decision Choice Buttons */}
-              <div className="card-negotiation-footer">
+              {/* 4 Explicit Retention Choices */}
+              <div className="card-negotiation-footer flex-wrap">
                 <button 
                   className="btn-negotiate btn-longterm"
                   onClick={() => onConfirmMemory(mem.id, 'long-term')}
-                  title="Remember across ALL future conversations"
+                  title="Remember across all future sessions"
                 >
-                  <Lock size={14} />
-                  <span>Store Long-Term</span>
+                  <Lock size={13} />
+                  <span>Remember Forever</span>
                 </button>
 
                 <button 
                   className="btn-negotiate btn-session"
                   onClick={() => onConfirmMemory(mem.id, 'session')}
-                  title="Remember ONLY for this active session"
+                  title="Keep active for today only"
                 >
-                  <Zap size={14} />
-                  <span>Session Only</span>
+                  <Calendar size={13} />
+                  <span>Remember Today Only</span>
+                </button>
+
+                <button 
+                  className="btn-negotiate btn-chat-only"
+                  onClick={() => onConfirmMemory(mem.id, 'session')}
+                  title="Forget immediately after this chat"
+                >
+                  <Clock size={13} />
+                  <span>Forget After Chat</span>
                 </button>
 
                 <button 
                   className="btn-negotiate btn-discard"
                   onClick={() => onRejectMemory(mem.id)}
-                  title="Do NOT store this memory anywhere"
+                  title="Never remember this information"
                 >
-                  <Trash2 size={14} />
-                  <span>Discard / Forget</span>
+                  <Ban size={13} />
+                  <span>Never Remember</span>
                 </button>
               </div>
             </div>

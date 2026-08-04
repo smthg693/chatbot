@@ -462,6 +462,98 @@ body {
   color: #f8fafc;
 }
 
+/* In-Stream Negotiation Banner */
+.negotiation-banner {
+  background: #161B22;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+.negotiation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.negotiation-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.count-badge {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.negotiation-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.negotiation-card {
+  padding: 14px;
+  border-radius: 14px;
+  background: #1E2530;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-negotiation-footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-negotiate {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-longterm {
+  background: rgba(16, 163, 127, 0.2);
+  color: #10A37F;
+  border-color: rgba(16, 163, 127, 0.4);
+}
+.btn-longterm:hover { background: var(--accent); color: #ffffff; }
+
+.btn-session {
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+.btn-session:hover { background: #38bdf8; color: #000000; }
+
+.btn-discard {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fda4af;
+  border-color: rgba(244, 63, 94, 0.3);
+}
+.btn-discard:hover { background: #f43f5e; color: #ffffff; }
+
 /* Fixed Glassmorphism Input Box at Bottom */
 .chat-input-form {
   padding: 10px 16px;
@@ -1286,4 +1378,156 @@ body {
 
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* =========================================================
+   COMPREHENSIVE RESPONSIVE MOBILE BREAKPOINTS (< 768px)
+   ========================================================= */
+@media (max-width: 768px) {
+  .glass-nav {
+    padding: 10px 14px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .header-left {
+    gap: 8px;
+  }
+
+  .logo-text {
+    font-size: 1rem;
+  }
+
+  .header-nav {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .nav-tab {
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .chat-window-container {
+    padding: 0 10px;
+  }
+
+  .chat-header-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .scenario-pills {
+    justify-content: center;
+  }
+
+  .message-content-wrapper {
+    max-width: 90%;
+  }
+
+  .message-bubble {
+    padding: 12px 14px;
+    font-size: 0.94rem;
+  }
+
+  .chat-input-form {
+    padding: 8px 12px;
+    margin-bottom: 12px;
+  }
+
+  .negotiation-banner {
+    padding: 12px;
+  }
+
+  .card-negotiation-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .btn-negotiate {
+    padding: 8px;
+    font-size: 0.75rem;
+  }
+
+  .memory-vault-container, .audit-log-container {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .vault-header-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .vault-controls-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .view-toggle-pill-container {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .add-memory-glow-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .add-memory-dropdown-menu {
+    width: 100%;
+  }
+
+  .vault-filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .search-input-wrapper {
+    max-width: 100%;
+  }
+
+  .filter-group {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .memory-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar-drawer-panel {
+    max-width: 100%;
+    width: 100%;
+    padding: 18px;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 18px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-primary-action, .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
 }

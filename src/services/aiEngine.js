@@ -21,7 +21,7 @@ export async function generateAIResponse({
 }
 
 function buildMemorySystemPrompt(longTerm, session, pending) {
-  let prompt = `You are MemoriAI, a clean, direct, and intelligent assistant with a transparent memory system.\n\n`;
+  let prompt = `You are a helpful, intelligent AI assistant with an active, transparent memory system.\n\n`;
   
   if (longTerm.length > 0) {
     prompt += `=== CONFIRMED LONG-TERM MEMORIES ===\n`;
@@ -35,10 +35,14 @@ function buildMemorySystemPrompt(longTerm, session, pending) {
     prompt += `\n`;
   }
 
-  prompt += `INSTRUCTIONS:\n`;
-  prompt += `1. Speak directly, naturally, and warmly in clear, clean English paragraphs.\n`;
-  prompt += `2. Do NOT output raw metadata tags or verbose parenthetical headers like "*(Shaped by confirmed long-term memory...)*".\n`;
-  prompt += `3. Format your answers neatly using Markdown with proper spacing and code blocks where applicable.`;
+  prompt += `WRITING STYLE & FORMATTING RULES:\n`;
+  prompt += `- Start with a direct answer, followed by short explanations and practical examples.\n`;
+  prompt += `- Break responses into short paragraphs (never dump everything into one paragraph).\n`;
+  prompt += `- Use clean bullet points (•) only when improving readability.\n`;
+  prompt += `- Bold only important keywords or headings.\n`;
+  prompt += `- Avoid excessive markdown symbols (*, ##, ---). Never output raw markdown syntax.\n`;
+  prompt += `- Keep answers between 80–250 words unless explicitly asked for detail.\n`;
+  prompt += `- End with a relevant, engaging follow-up question.`;
 
   return prompt;
 }
@@ -71,7 +75,7 @@ async function callGeminiAPI(messages, memorySystemPrompt, apiKeyConfig) {
     }
 
     const data = await res.json();
-    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I have processed your request using your active memory context.";
+    const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text || "I have processed your request using active memory context.";
     return {
       text: replyText,
       provider: 'Google Gemini',
@@ -119,7 +123,7 @@ async function callOpenAIAPI(messages, memorySystemPrompt, apiKeyConfig) {
     }
 
     const data = await res.json();
-    const replyText = data.choices?.[0]?.message?.content || "I have processed your request using your active memory context.";
+    const replyText = data.choices?.[0]?.message?.content || "I have processed your request using active memory context.";
     return {
       text: replyText,
       provider: 'OpenAI',
@@ -149,44 +153,20 @@ async function simulateAIResponse(messages, longTerm, session, pending) {
   session.forEach(m => memoryCitations.push(`⚡ ${m.text}`));
 
   if (/hello|hi|hey|soham/i.test(lowerMsg)) {
-    responseParts.push(`Hi Soham! How can I help you today? Whether we're diving into your current session's Python project, working with your primary stack of TypeScript & React, or discussing UI design, I'm ready to assist!`);
+    responseParts.push(`Hi Soham! How can I help you today?`);
+    responseParts.push(`Whether we're working on your **Python** backend project, building components in **TypeScript & React**, or discussing UI design, I'm ready to jump in.`);
+    responseParts.push(`What kind of project are you working on today?`);
   } else if (/cors|proxy|express|react|node|tailwind|code|python|bug/i.test(lowerMsg)) {
-    responseParts.push(`I've reviewed your request in the context of your current tech stack.`);
+    responseParts.push(`To resolve Express proxy CORS issues, you need to set explicit origin headers on your backend response.`);
 
-    const hasTailwind = longTerm.some(m => m.text.toLowerCase().includes('tailwind'));
-    if (hasTailwind) {
-      responseParts.push(`I will apply your confirmed preference for **Tailwind CSS** in all UI code snippets.`);
-    }
+    responseParts.push(`Using the official \`cors\` middleware package is the cleanest approach:`);
 
-    if (/cors/i.test(lowerMsg)) {
-      responseParts.push(`To resolve your Express proxy CORS issue, configure the backend origin headers or apply the official \`cors\` middleware package:
+    responseParts.push(`\`\`\`javascript\nconst cors = require('cors');\napp.use(cors({ origin: 'http://localhost:5173', credentials: true }));\n\`\`\``);
 
-\`\`\`javascript
-const cors = require('cors');
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
-\`\`\``);
-    } else {
-      responseParts.push(`Here is how we can structure this component cleanly following your active technical preferences and guidelines.`);
-    }
-  } else if (/doctor|blood pressure|prescription|health|diet|vegetarian|allergy/i.test(lowerMsg)) {
-    responseParts.push(`I have updated your health and lifestyle context.`);
-
-    const privacyConstraint = longTerm.find(m => m.category === 'Constraint/Privacy');
-    if (privacyConstraint) {
-      responseParts.push(`🛡️ **Privacy Guardrail Active**: Complying with your privacy constraint (${privacyConstraint.text}). Sensitive details will not persist beyond this conversation.`);
-    }
-
-    responseParts.push(`Here is a clean daily tracking template you can use:
-
-• **Date & Time**
-• **Systolic / Diastolic Reading**
-• **Pulse Rate**
-• **Notes & Observations**`);
-  } else if (/trip|tokyo|travel|budget|flight|hotel/i.test(lowerMsg)) {
-    responseParts.push(`That sounds like an exciting trip!`);
-    responseParts.push(`For a 5-day itinerary under $2,500, allocating ~$150 per night for accommodations and ~$40 per day for dining will keep you comfortably within your budget while leaving room for local transportation passes.`);
+    responseParts.push(`Would you like to test this with a specific endpoint route?`);
   } else {
-    responseParts.push(`Understood. I have logged your message and updated your active memory context accordingly.`);
+    responseParts.push(`Understood! I have updated your active memory context accordingly.`);
+    responseParts.push(`What would you like to explore next?`);
   }
 
   return {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   BrainCircuit, 
   Search, 
@@ -8,13 +8,18 @@ import {
   Trash2, 
   Edit3, 
   Filter, 
-  Layers, 
+  LayoutGrid, 
   Network, 
   ShieldAlert, 
   Clock, 
   ArrowRightLeft,
   Check,
-  X
+  X,
+  ChevronDown,
+  FileText,
+  Upload,
+  Tag,
+  Sparkles
 } from 'lucide-react';
 import { CATEGORY_COLORS } from '../../data/mockScenarios';
 import MemoryNodeGraph from './MemoryNodeGraph';
@@ -31,6 +36,9 @@ export default function MemoryVault({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'graph'
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddDropdownOpen, setIsAddDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef(null);
 
   // New Memory Form State
   const [newText, setNewText] = useState('');
@@ -40,6 +48,16 @@ export default function MemoryVault({
   // Inline editing memory state
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsAddDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const filteredMemories = memories.filter(m => {
     const matchesSearch = (m.text || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -88,11 +106,11 @@ export default function MemoryVault({
 
   return (
     <div className="memory-vault-container">
-      {/* Header Controls */}
+      {/* Premium Dark Dashboard Control Container */}
       <div className="vault-header-bar glass-card">
         <div className="vault-title-area">
           <div className="flex items-center gap-2">
-            <BrainCircuit className="text-cyan-400" size={24} />
+            <BrainCircuit className="text-emerald-400" size={24} />
             <h2 className="vault-title">AI Memory Vault</h2>
           </div>
           <p className="vault-subtitle">
@@ -100,31 +118,107 @@ export default function MemoryVault({
           </p>
         </div>
 
-        <div className="vault-actions">
-          {/* View Mode Selector */}
-          <div className="view-mode-toggle">
+        {/* Dashboard Control Pills from Reference Image */}
+        <div className="vault-controls-wrapper">
+          <div className="view-toggle-pill-container">
             <button 
-              className={`toggle-btn ${viewMode === 'grid' ? 'active' : ''}`}
+              className={`pill-toggle-btn pill-grid ${viewMode === 'grid' ? 'active' : ''}`}
               onClick={() => setViewMode('grid')}
-              title="Card Grid View"
             >
-              <Layers size={16} /> Grid
+              <LayoutGrid size={17} className="icon-teal" />
+              <span>Grid</span>
             </button>
+
             <button 
-              className={`toggle-btn ${viewMode === 'graph' ? 'active' : ''}`}
+              className={`pill-toggle-btn pill-graph ${viewMode === 'graph' ? 'active' : ''}`}
               onClick={() => setViewMode('graph')}
-              title="Visual Node Graph View"
             >
-              <Network size={16} /> Knowledge Graph
+              <Network size={17} className="icon-purple" />
+              <span>Knowledge Graph</span>
             </button>
           </div>
 
-          <button 
-            className="btn-primary-action"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            <Plus size={16} /> Add Memory
-          </button>
+          {/* Add Memory Button with Dropdown Menu */}
+          <div className="relative" ref={dropdownRef}>
+            <button 
+              className={`add-memory-glow-btn ${isAddDropdownOpen ? 'active' : ''}`}
+              onClick={() => setIsAddDropdownOpen(!isAddDropdownOpen)}
+            >
+              <Plus size={18} />
+              <span>Add Memory</span>
+              <ChevronDown size={15} className={`chevron-icon ${isAddDropdownOpen ? 'rotate' : ''}`} />
+            </button>
+
+            {isAddDropdownOpen && (
+              <div className="add-memory-dropdown-menu glass-card animate-scale-up">
+                <button 
+                  className="add-dropdown-item"
+                  onClick={() => {
+                    setIsAddDropdownOpen(false);
+                    setIsAddModalOpen(true);
+                  }}
+                >
+                  <div className="item-icon-box icon-teal-bg">
+                    <FileText size={16} className="text-emerald-400" />
+                  </div>
+                  <div className="item-text-group">
+                    <div className="item-title">Add New Memory</div>
+                    <div className="item-desc">Manually add a memory</div>
+                  </div>
+                </button>
+
+                <button 
+                  className="add-dropdown-item"
+                  onClick={() => {
+                    setIsAddDropdownOpen(false);
+                    alert("Import Memory: Select a backup JSON file to restore memories.");
+                  }}
+                >
+                  <div className="item-icon-box icon-purple-bg">
+                    <Upload size={16} className="text-purple-400" />
+                  </div>
+                  <div className="item-text-group">
+                    <div className="item-title">Import Memory</div>
+                    <div className="item-desc">Import from file or backup</div>
+                  </div>
+                </button>
+
+                <button 
+                  className="add-dropdown-item"
+                  onClick={() => {
+                    setIsAddDropdownOpen(false);
+                    setSelectedScope('pending');
+                    setViewMode('grid');
+                  }}
+                >
+                  <div className="item-icon-box icon-blue-bg">
+                    <Tag size={16} className="text-sky-400" />
+                  </div>
+                  <div className="item-text-group">
+                    <div className="item-title">Add from Conversation</div>
+                    <div className="item-desc">Save from current chat</div>
+                  </div>
+                </button>
+
+                <button 
+                  className="add-dropdown-item"
+                  onClick={() => {
+                    setIsAddDropdownOpen(false);
+                    setSelectedScope('pending');
+                    setViewMode('grid');
+                  }}
+                >
+                  <div className="item-icon-box icon-amber-bg">
+                    <Sparkles size={16} className="text-amber-400" />
+                  </div>
+                  <div className="item-text-group">
+                    <div className="item-title">AI Detected Memory</div>
+                    <div className="item-desc">Review AI detected items</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -135,7 +229,7 @@ export default function MemoryVault({
           <input 
             type="text"
             className="vault-search-input"
-            placeholder="Search memory vault by keyword, category..."
+            placeholder="Search memory vault..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -147,7 +241,6 @@ export default function MemoryVault({
         </div>
 
         <div className="filter-group">
-          <span className="filter-label"><Filter size={12} /> Scope:</span>
           <button 
             className={`filter-chip ${selectedScope === 'all' ? 'active' : ''}`}
             onClick={() => setSelectedScope('all')}
@@ -300,7 +393,7 @@ export default function MemoryVault({
           <div className="modal-content glass-card animate-scale-up">
             <div className="modal-header">
               <h3 className="modal-title flex items-center gap-2">
-                <BrainCircuit className="text-cyan-400" size={18} />
+                <BrainCircuit className="text-emerald-400" size={18} />
                 Manually Add Negotiated Memory
               </h3>
               <button className="close-btn" onClick={() => setIsAddModalOpen(false)}>
@@ -321,7 +414,7 @@ export default function MemoryVault({
                 />
               </div>
 
-              <div className="form-row">
+              <div className="form-row flex gap-3">
                 <div className="form-group flex-1">
                   <label>Category:</label>
                   <select 

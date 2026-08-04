@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Key, ShieldCheck, Cpu, Check, X, Sparkles, ExternalLink } from 'lucide-react';
+import { Key, ShieldCheck, Check, X, Sparkles, ExternalLink, Bot, Cpu } from 'lucide-react';
 
 export default function ApiKeyModal({ isOpen, onClose, apiKeyConfig, onSaveApiKeyConfig }) {
   const [provider, setProvider] = useState(apiKeyConfig?.provider || 'mock');
@@ -18,86 +18,106 @@ export default function ApiKeyModal({ isOpen, onClose, apiKeyConfig, onSaveApiKe
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal-content glass-card animate-scale-up">
+    <div className="modal-backdrop animate-fade-in" onClick={onClose}>
+      <div className="modal-content glass-card animate-scale-up" onClick={(e) => e.stopPropagation()}>
+        {/* Modal Header */}
         <div className="modal-header">
-          <h3 className="modal-title flex items-center gap-2">
-            <Key className="text-amber-400" size={20} />
-            Configure AI Engine & API Key
-          </h3>
+          <div className="flex items-center gap-3">
+            <div className="modal-icon-badge">
+              <Key className="text-amber-400" size={20} />
+            </div>
+            <div>
+              <h3 className="modal-title">AI Engine Settings</h3>
+              <p className="modal-subtitle">Configure Provider & API Key</p>
+            </div>
+          </div>
           <button className="close-btn" onClick={onClose}>
             <X size={18} />
           </button>
         </div>
 
+        {/* Modal Form */}
         <form onSubmit={handleSave} className="modal-form">
           <div className="form-group">
-            <label>AI Provider Selection:</label>
+            <label className="form-label">AI Provider Selection:</label>
             <div className="provider-options">
-              <label className={`provider-card ${provider === 'mock' ? 'selected' : ''}`}>
-                <input 
-                  type="radio" 
-                  name="provider" 
-                  value="mock" 
-                  checked={provider === 'mock'}
-                  onChange={() => setProvider('mock')}
-                />
+              {/* Option 1: Mock Simulator */}
+              <label 
+                className={`provider-card ${provider === 'mock' ? 'selected' : ''}`}
+                onClick={() => setProvider('mock')}
+              >
+                <div className="provider-radio">
+                  <div className={`radio-dot ${provider === 'mock' ? 'checked' : ''}`} />
+                </div>
                 <div className="provider-info">
-                  <div className="font-semibold text-sky-400">⚡ Built-in Smart Simulator (Offline)</div>
-                  <div className="text-xs text-slate-400">Works 100% locally out-of-the-box without any API keys.</div>
+                  <div className="provider-name flex items-center gap-2 text-emerald-400 font-semibold">
+                    <Sparkles size={15} /> Built-in Smart Simulator (Offline)
+                  </div>
+                  <div className="provider-desc">
+                    Works 100% locally out-of-the-box without requiring any API keys.
+                  </div>
                 </div>
               </label>
 
-              <label className={`provider-card ${provider === 'gemini' ? 'selected' : ''}`}>
-                <input 
-                  type="radio" 
-                  name="provider" 
-                  value="gemini" 
-                  checked={provider === 'gemini'}
-                  onChange={() => {
-                    setProvider('gemini');
-                    setModel('gemini-3.6-flash');
-                  }}
-                />
+              {/* Option 2: Google Gemini API */}
+              <label 
+                className={`provider-card ${provider === 'gemini' ? 'selected' : ''}`}
+                onClick={() => {
+                  setProvider('gemini');
+                  setModel('gemini-3.6-flash');
+                }}
+              >
+                <div className="provider-radio">
+                  <div className={`radio-dot ${provider === 'gemini' ? 'checked' : ''}`} />
+                </div>
                 <div className="provider-info">
-                  <div className="font-semibold text-emerald-400">✨ Google Gemini API</div>
-                  <div className="text-xs text-slate-400">Use your Google AI Studio API Key.</div>
+                  <div className="provider-name flex items-center gap-2 text-cyan-400 font-semibold">
+                    <Cpu size={15} /> Google Gemini API
+                  </div>
+                  <div className="provider-desc">
+                    Use your Google AI Studio API Key (supports Gemini 3.6 Flash).
+                  </div>
                 </div>
               </label>
 
-              <label className={`provider-card ${provider === 'openai' ? 'selected' : ''}`}>
-                <input 
-                  type="radio" 
-                  name="provider" 
-                  value="openai" 
-                  checked={provider === 'openai'}
-                  onChange={() => {
-                    setProvider('openai');
-                    setModel('gpt-4o-mini');
-                  }}
-                />
+              {/* Option 3: OpenAI API */}
+              <label 
+                className={`provider-card ${provider === 'openai' ? 'selected' : ''}`}
+                onClick={() => {
+                  setProvider('openai');
+                  setModel('gpt-4o-mini');
+                }}
+              >
+                <div className="provider-radio">
+                  <div className={`radio-dot ${provider === 'openai' ? 'checked' : ''}`} />
+                </div>
                 <div className="provider-info">
-                  <div className="font-semibold text-indigo-400">🤖 OpenAI API</div>
-                  <div className="text-xs text-slate-400">Use your OpenAI API Key.</div>
+                  <div className="provider-name flex items-center gap-2 text-purple-400 font-semibold">
+                    <Bot size={15} /> OpenAI API
+                  </div>
+                  <div className="provider-desc">
+                    Use your official OpenAI API Key (GPT-4o / GPT-4o Mini).
+                  </div>
                 </div>
               </label>
             </div>
           </div>
 
+          {/* Conditional API Key Input */}
           {provider !== 'mock' && (
-            <>
+            <div className="api-key-fields space-y-4">
               <div className="form-group">
-                <label className="flex items-center justify-between">
-                  <span>API Key:</span>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="form-label mb-0">API Key:</label>
                   <a 
                     href={provider === 'gemini' ? "https://aistudio.google.com/app/apikey" : "https://platform.openai.com/api-keys"} 
                     target="_blank" 
                     rel="noreferrer"
-                    className="text-xs text-cyan-400 hover:underline inline-flex items-center gap-1"
+                    className="text-xs text-emerald-400 hover:underline flex items-center gap-1 font-medium"
                   >
-                    Get Key <ExternalLink size={10} />
+                    Get Key <ExternalLink size={11} />
                   </a>
-                </label>
+                </div>
                 <input 
                   type="password"
                   className="form-input font-mono"
@@ -109,7 +129,7 @@ export default function ApiKeyModal({ isOpen, onClose, apiKeyConfig, onSaveApiKe
               </div>
 
               <div className="form-group">
-                <label>Model Version:</label>
+                <label className="form-label">Model Version:</label>
                 {!isCustomModel ? (
                   <select 
                     className="form-select"
@@ -143,14 +163,14 @@ export default function ApiKeyModal({ isOpen, onClose, apiKeyConfig, onSaveApiKe
                     <input 
                       type="text"
                       className="form-input font-mono flex-1"
-                      placeholder="e.g. gemini-3.6-flash or gemini-2.0-flash-thinking"
+                      placeholder="e.g. gemini-3.6-flash"
                       value={customModelName}
                       onChange={(e) => setCustomModelName(e.target.value)}
                       required
                     />
                     <button 
                       type="button" 
-                      className="btn-secondary text-xs"
+                      className="btn-secondary text-xs px-3"
                       onClick={() => setIsCustomModel(false)}
                     >
                       Presets
@@ -158,16 +178,18 @@ export default function ApiKeyModal({ isOpen, onClose, apiKeyConfig, onSaveApiKe
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
 
-          <div className="security-notice">
-            <ShieldCheck size={14} className="text-emerald-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-400">
-              API Keys are stored exclusively in memory/localStorage in your local browser and are never sent to external servers other than directly to official Google / OpenAI API endpoints.
+          {/* Privacy Security Box */}
+          <div className="security-notice flex items-start gap-2">
+            <ShieldCheck size={16} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-400 leading-relaxed">
+              API Keys are stored exclusively in local memory/browser storage and are never sent to external servers other than directly to official Google / OpenAI API endpoints.
             </p>
           </div>
 
+          {/* Modal Actions */}
           <div className="modal-footer">
             <button type="button" className="btn-secondary" onClick={onClose}>
               Cancel

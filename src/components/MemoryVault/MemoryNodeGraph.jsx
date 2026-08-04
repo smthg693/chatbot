@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { Lock, Zap, Clock, ShieldAlert, Sparkles, BrainCircuit } from 'lucide-react';
 import { CATEGORY_COLORS } from '../../data/mockScenarios';
 
 export default function MemoryNodeGraph({ memories, onSelectMemory }) {
@@ -26,7 +25,7 @@ export default function MemoryNodeGraph({ memories, onSelectMemory }) {
     });
 
     // Position memory leaf nodes around their category
-    const leafNodes = activeMemories.map((mem, idx) => {
+    const leafNodes = activeMemories.map((mem) => {
       const catNode = categoryNodes.find(c => c.label === mem.category) || categoryNodes[0];
       const itemsInCat = activeMemories.filter(m => m.category === mem.category);
       const itemIdx = itemsInCat.findIndex(m => m.id === mem.id);
@@ -56,7 +55,6 @@ export default function MemoryNodeGraph({ memories, onSelectMemory }) {
   if (activeMemories.length === 0) {
     return (
       <div className="graph-empty-container">
-        <BrainCircuit size={48} className="text-slate-600 animate-pulse" />
         <p>No active memory nodes yet. Chat with MemoriAI or add a memory to populate the knowledge graph!</p>
       </div>
     );
@@ -73,8 +71,8 @@ export default function MemoryNodeGraph({ memories, onSelectMemory }) {
       <svg className="graph-svg" viewBox="0 0 800 500">
         <defs>
           <radialGradient id="hubGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#4f46e5" stopOpacity="0.1" />
+            <stop offset="0%" stopColor="#10A37F" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#0d8a6c" stopOpacity="0.1" />
           </radialGradient>
         </defs>
 
@@ -100,7 +98,7 @@ export default function MemoryNodeGraph({ memories, onSelectMemory }) {
             y1={nodes.categoryNodes.find(c => c.id === lNode.catId)?.y || 250}
             x2={lNode.x}
             y2={lNode.y}
-            stroke={lNode.scope === 'long-term' ? 'rgba(99, 102, 241, 0.4)' : lNode.scope === 'session' ? 'rgba(56, 189, 248, 0.4)' : 'rgba(245, 158, 11, 0.4)'}
+            stroke={lNode.scope === 'long-term' ? 'rgba(16, 163, 127, 0.4)' : lNode.scope === 'session' ? 'rgba(56, 189, 248, 0.4)' : 'rgba(245, 158, 11, 0.4)'}
             strokeWidth="1.5"
           />
         ))}
@@ -108,7 +106,7 @@ export default function MemoryNodeGraph({ memories, onSelectMemory }) {
         {/* Center Node */}
         <g transform={`translate(${nodes.centerNode.x}, ${nodes.centerNode.y})`}>
           <circle r="36" fill="url(#hubGlow)" className="animate-pulse" />
-          <circle r="22" fill="#4f46e5" />
+          <circle r="22" fill="#10A37F" />
           <text textAnchor="middle" dy="4" fill="#ffffff" fontSize="11" fontWeight="bold">
             USER CORE
           </text>
@@ -126,7 +124,7 @@ export default function MemoryNodeGraph({ memories, onSelectMemory }) {
 
         {/* Leaf Memory Nodes */}
         {nodes.leafNodes.map(lNode => {
-          const color = lNode.status === 'pending' ? '#f59e0b' : lNode.scope === 'long-term' ? '#818cf8' : '#38bdf8';
+          const color = lNode.status === 'pending' ? '#f59e0b' : lNode.scope === 'long-term' ? '#10A37F' : '#38bdf8';
 
           return (
             <g 

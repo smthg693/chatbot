@@ -9,10 +9,10 @@ const PREFERENCE_PATTERNS = [
 ];
 
 const SESSION_PATTERNS = [
-  /for this (?:session|task|project|conversation)(.*?)(?=\.|\!|\;|$)/i,
-  /currently (?:debugging|building|working on) (.*?)(?=\.|\!|\;|$)/i,
-  /today i (?:want|need) to (.*?)(?=\.|\!|\;|$)/i,
-  /just (?:testing|trying) (.*?)(?=\.|\!|\;|$)/i
+  /for this (?:session|task|project|conversation)(.*?)(?=[.!;]|$)/i,
+  /currently (?:debugging|building|working on) (.*?)(?=[.!;]|$)/i,
+  /today i (?:want|need) to (.*?)(?=[.!;]|$)/i,
+  /just (?:testing|trying) (.*?)(?=[.!;]|$)/i
 ];
 
 const HIGH_SENSITIVITY_KEYWORDS = ['password', 'ssn', 'credit card', 'api key', 'secret', 'prescription', 'bank account', 'diagnosis', 'medical record'];
@@ -102,7 +102,7 @@ export function extractMemoriesFromText(text, existingMemories = []) {
   }
 
   // 4. Fallback for explicit statements like "I am a ..." or "My name is ..."
-  const identityMatch = text.match(/\bi am (?:a |an )?([a-zA-Z0-9\s\-]{3,30})(?=\.|\!|\;|,|$)/i);
+  const identityMatch = text.match(/\bi am (?:a |an )?([a-zA-Z0-9\s-]{3,30})(?=[.!;,]|$)/i);
   if (identityMatch && !/building|working|debugging|trying|planning|testing/i.test(identityMatch[1])) {
     const roleText = `User identity/role: ${identityMatch[1].trim()}`;
     if (!isDuplicate(roleText, existingMemories, candidates)) {

@@ -10,7 +10,6 @@ import {
   ShieldCheck, 
   PlayCircle, 
   RefreshCw, 
-  Info,
   CheckCircle2,
   SlidersHorizontal
 } from 'lucide-react';
@@ -70,7 +69,6 @@ export default function ChatWindow({
       {/* Top Context & Preset Scenarios Header Bar */}
       <div className="chat-header-bar glass-card">
         <div className="scenario-pills">
-          <span className="scenario-label">Quick Scenarios:</span>
           {PRESET_SCENARIOS.map(sc => (
             <button 
               key={sc.id}
@@ -85,7 +83,6 @@ export default function ChatWindow({
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Auto-Judge & Store Mode Pill */}
           <button 
             className={`auto-store-toggle-btn ${!consentSettings.strictConsent ? 'auto-on' : 'auto-off'}`}
             onClick={toggleAutoStore}
@@ -119,9 +116,9 @@ export default function ChatWindow({
             <div className="hero-icon-container">
               <BrainCircuit className="hero-brain-icon animate-pulse-glow" />
             </div>
-            <h2>Autonomous & Negotiable AI Memory</h2>
+            <h2>Hi Soham! How can I help you today?</h2>
             <p className="hero-description">
-              Type anything to start chatting. Memories are <strong>automatically evaluated, judged, and stored into active context</strong>, or you can switch to Manual Review mode anytime.
+              Whether we're diving into your current session's Python project, working with your primary stack of TypeScript & React, or discussing UI design, I'm ready to assist!
             </p>
 
             <div className="quick-prompt-chips">
@@ -204,7 +201,7 @@ export default function ChatWindow({
             <div className="message-content-wrapper">
               <div className="thinking-bubble glass-card">
                 <RefreshCw size={14} className="animate-spin text-cyan-400" />
-                <span>Evaluating task context & formulating response...</span>
+                <span>Processing request...</span>
               </div>
             </div>
           </div>
@@ -234,7 +231,7 @@ export default function ChatWindow({
         <div className="input-row">
           <textarea
             className="chat-textarea"
-            placeholder="Type your message... (e.g. 'I prefer dark mode, but for this task I am writing Python')"
+            placeholder="Type your message..."
             rows={2}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -253,20 +250,6 @@ export default function ChatWindow({
           >
             <Send size={18} />
           </button>
-        </div>
-
-        <div className="input-footer-hint">
-          <div className="hint-item">
-            <Sparkles size={11} className="text-amber-400 inline" />
-            <span>
-              {!consentSettings.strictConsent ? 
-                'Auto-Store Mode ON: Memories are automatically judged & stored. You can manage them in Memory Vault anytime.' : 
-                'Manual Review Mode: Extracted candidates are queued above for your explicit confirmation.'}
-            </span>
-          </div>
-          <div className="hint-item">
-            <kbd>Shift + Enter</kbd> for new line
-          </div>
         </div>
       </form>
     </div>

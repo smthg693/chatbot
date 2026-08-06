@@ -6,9 +6,11 @@ import MemoryVault from './components/MemoryVault/MemoryVault';
 import AuditLogView from './components/AuditLog/AuditLogView';
 import ApiKeyModal from './components/Settings/ApiKeyModal';
 import ConsentSettingsModal from './components/Settings/ConsentSettingsModal';
+import AuthView from './components/Auth/AuthView';
 
 import { extractMemoriesFromText } from './services/memoryExtractor';
 import { generateAIResponse } from './services/aiEngine';
+import { dbService } from './services/dbService';
 
 const INITIAL_MEMORIES = [
   {
@@ -36,16 +38,35 @@ const INITIAL_MEMORIES = [
 ];
 
 export default function App() {
+  // Initialize Database defaults
+  useEffect(() => {
+    dbService.init();
+  }, []);
+
+  // Auth User Session State
+  const [currentUser, setCurrentUser] = useState(() => dbService.getCurrentSession());
+
   const [activeTab, setActiveTab] = useState('chat'); // 'chat' | 'vault' | 'audit'
-  
-  // Memories State with LocalStorage Persistence
+
+  // Memories State with Per-User DB Persistence
   const [memories, setMemories] = useState(() => {
-    const saved = localStorage.getItem('memoriflow_memories');
-    return saved ? JSON.parse(saved) : INITIAL_MEMORIES;
+    const sessionUser = dbService.getCurrentSession();
+    if (sessionUser) {
+      const saved = dbService.getUserMemories(sessionUser.id);
+      if (saved) return saved;
+    }
+    return INITIAL_MEMORIES;
   });
 
-  // Messages Transcript
-  const [messages, setMessages] = useState([]);
+  // Messages Transcript with Per-User DB Persistence
+  const [messages, setMessages] = useState(() => {
+    const sessionUser = dbService.getCurrentSession();
+    if (sessionUser) {
+      return dbService.getUserChats(sessionUser.id);
+    }
+    return [];
+  });
+
   const [isThinking, setIsThinking] = useState(false);
 
   // Audit Logs with Persistence
@@ -68,9 +89,9 @@ export default function App() {
     return saved ? JSON.parse(saved) : { provider: 'mock', key: '', model: '' };
   });
 
-  // Default strictConsent to FALSE so memories are auto-judged and stored automatically!
+  // Default strictConsent to FALSE so memories are auto-judged!
   const [consentSettings, setConsentSettings] = useState({
-    strictConsent: false, // Auto-Approve & Auto-Scope Mode is ON by default!
+    strictConsent: false,
     autoFlagPii: true,
     showCitations: true,
     autoClearSession: true
@@ -83,10 +104,18 @@ export default function App() {
   // Toast notification state for auto-stored memories
   const [autoStoreNotification, setAutoStoreNotification] = useState(null);
 
-  // Sync to LocalStorage
+  // Sync memories & messages to Per-User DB
   useEffect(() => {
-    localStorage.setItem('memoriflow_memories', JSON.stringify(memories));
-  }, [memories]);
+    if (currentUser) {
+      dbService.saveUserMemories(currentUser.id, memories);
+    }
+  }, [memories, currentUser]);
+
+  useEffect(() => {
+    if (currentUser) {
+      dbService.saveUserChats(currentUser.id, messages);
+    }
+  }, [messages, currentUser]);
 
   useEffect(() => {
     localStorage.setItem('memoriflow_audit_logs', JSON.stringify(auditLogs));
@@ -95,6 +124,22 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('memoriflow_apikey_config', JSON.stringify(apiKeyConfig));
   }, [apiKeyConfig]);
+
+  // Handle Login Success
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    const userMemories = dbService.getUserMemories(user.id);
+    const userChats = dbService.getUserChats(user.id);
+
+    setMemories(userMemories || INITIAL_MEMORIES);
+    setMessages(userChats || []);
+  };
+
+  // Handle Logout
+  const handleLogout = () => {
+    dbService.logout();
+    setCurrentUser(null);
+  };
 
   // Derived pending memories
   const pendingMemories = memories.filter(m => m.status === 'pending');
@@ -287,6 +332,11 @@ export default function App() {
     handleSendMessage(scenario.initialMessage);
   };
 
+  // Render Login Screen if user is signed out
+  if (!currentUser) {
+    return <AuthView onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="app-container">
       <Navbar 
@@ -298,6 +348,8 @@ export default function App() {
         apiKeyConfig={apiKeyConfig}
         onResetSession={handleResetSession}
         onLoadScenario={handleLoadScenario}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       <main className="app-main-content">

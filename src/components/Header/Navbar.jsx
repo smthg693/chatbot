@@ -4,7 +4,9 @@ import {
   BrainCircuit, 
   Sliders, 
   Lock, 
-  Zap
+  Zap,
+  LogOut,
+  User
 } from 'lucide-react';
 import SidebarDrawer from './SidebarDrawer';
 
@@ -15,12 +17,18 @@ export default function Navbar({
   onOpenApiKeyModal, 
   onOpenConsentModal,
   apiKeyConfig,
-  onResetSession
+  onResetSession,
+  currentUser,
+  onLogout
 }) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const longTermCount = memories.filter(m => m.scope === 'long-term' && m.status === 'active').length;
   const sessionCount = memories.filter(m => m.scope === 'session' && m.status === 'active').length;
+
+  const initials = currentUser?.name 
+    ? currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'U';
 
   return (
     <header className="app-header glass-nav">
@@ -37,7 +45,7 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Main Essential Navigation Tabs */}
+      {/* Main Navigation Tabs */}
       <nav className="header-nav">
         <button 
           className={`nav-tab ${activeTab === 'chat' ? 'active' : ''}`}
@@ -60,8 +68,28 @@ export default function Navbar({
         </button>
       </nav>
 
-      {/* Neat Settings Drawer Toggle Button */}
+      {/* User Profile Badge & Settings Trigger */}
       <div className="header-right">
+        {currentUser && (
+          <div className="user-profile-badge" title={`Logged in as ${currentUser.email}`}>
+            <div 
+              className="user-avatar-circle"
+              style={{ backgroundColor: currentUser.avatarColor || '#10A37F' }}
+            >
+              {initials}
+            </div>
+            <span className="user-name-text">{currentUser.name.split(' ')[0]}</span>
+            
+            <button 
+              className="logout-icon-btn"
+              onClick={onLogout}
+              title="Sign Out"
+            >
+              <LogOut size={15} />
+            </button>
+          </div>
+        )}
+
         <button 
           className={`sidebar-toggle-btn ${isDrawerOpen ? 'active' : ''}`}
           onClick={() => setIsDrawerOpen(true)}
@@ -83,6 +111,8 @@ export default function Navbar({
         onOpenConsentModal={onOpenConsentModal}
         apiKeyConfig={apiKeyConfig}
         onResetSession={onResetSession}
+        currentUser={currentUser}
+        onLogout={onLogout}
       />
     </header>
   );
